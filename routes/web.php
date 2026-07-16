@@ -12,6 +12,10 @@ use Illuminate\Support\Facades\Storage;
 
 // login route
 Route::get('/', function () {
+    return redirect('/login');
+});
+
+Route::get('/login', function () {
     return Auth::check()
         ? redirect()->route('admin.dashboard')
         : view('login');

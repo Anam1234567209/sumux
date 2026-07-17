@@ -4,6 +4,7 @@ use App\Http\Controllers\OngkirController;
 use App\Http\Controllers\PesananController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\LaporanController;
+use App\Http\Controllers\SettingsController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -212,8 +213,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'active'])->group(fu
         })->name('users.destroy');
 
         // Settings route
-        Route::get('/settings', function () {
-            return view('admin.settings');
-        })->name('settings');
+        Route::get('/settings', [SettingsController::class, 'index'])->name('settings');
+        Route::post('/settings/banks', [SettingsController::class, 'storeBank'])->name('settings.banks.store');
+        Route::post('/settings/progresses', [SettingsController::class, 'storeProgress'])->name('settings.progresses.store');
+        Route::post('/settings/packings', [SettingsController::class, 'storePacking'])->name('settings.packings.store');
+        Route::post('/settings/ekspedisis', [SettingsController::class, 'storeEkspedisi'])->name('settings.ekspedisis.store');
     });
 });

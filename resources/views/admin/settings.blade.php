@@ -4,342 +4,304 @@
 @section('title', 'Pengaturan')
 
 <div class="space-y-6">
+    @if (session('success'))
+        <div class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+            {{ session('success') }}
+        </div>
+    @endif
 
-    {{-- Header --}}
     <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
-            <h1 class="text-3xl font-bold text-slate-800">
-                Pengaturan
-            </h1>
-
-            <p class="text-slate-500">
-                Kelola profil, website, integrasi ongkir, dan keamanan akun admin
-            </p>
-        </div>
-
-        <div class="flex flex-wrap gap-3">
-            <button class="px-5 py-3 rounded-xl bg-white border border-slate-300 hover:bg-slate-100 transition">
-                <i class="fa-solid fa-rotate-right mr-2"></i>
-                Reset
-            </button>
-
-            <button class="px-5 py-3 rounded-xl bg-blue-400 text-white hover:bg-blue-700 transition">
-                <i class="fa-solid fa-floppy-disk mr-2"></i>
-                Simpan Perubahan
-            </button>
+            <h1 class="text-3xl font-bold text-slate-800">Pengaturan</h1>
+            <p class="text-slate-500">Kelola data bank, progres, packing, dan ekspedisi untuk operasional admin</p>
         </div>
     </div>
 
-    {{-- Summary --}}
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-        <div class="bg-white rounded-2xl p-5 shadow-sm">
-            <div class="flex items-center justify-between gap-4">
-                <div>
-                    <p class="text-slate-400">
-                        Status Website
-                    </p>
-
-                    <h2 class="text-2xl font-bold text-slate-800 mt-2">
-                        Aktif
-                    </h2>
-                </div>
-
-                <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                    <i class="fa-solid fa-circle-check"></i>
-                </div>
-            </div>
-        </div>
-
-        <div class="bg-white rounded-2xl p-5 shadow-sm">
-            <div class="flex items-center justify-between gap-4">
-                <div>
-                    <p class="text-slate-400">
-                        API Ongkir
-                    </p>
-
-                    <h2 class="text-2xl font-bold text-slate-800 mt-2">
-                        Terhubung
-                    </h2>
-                </div>
-
-                <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
-                    <i class="fa-solid fa-truck-fast"></i>
-                </div>
-            </div>
-        </div>
-
-        <div class="bg-white rounded-2xl p-5 shadow-sm">
-            <div class="flex items-center justify-between gap-4">
-                <div>
-                    <p class="text-slate-400">
-                        Total Admin
-                    </p>
-
-                    <h2 class="text-2xl font-bold text-slate-800 mt-2">
-                        2
-                    </h2>
-                </div>
-
-                <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
-                    <i class="fa-solid fa-user-shield"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="grid lg:grid-cols-12 gap-6">
-
-        {{-- Navigation --}}
+    <div class="grid gap-6 lg:grid-cols-12">
         <aside class="lg:col-span-4 xl:col-span-3">
-            <div class="bg-white rounded-2xl p-4 shadow-sm">
+            <div class="rounded-2xl bg-white p-4 shadow-sm">
                 <nav class="space-y-2">
-                    <a href="#profil"
-                        class="flex items-center justify-between gap-3 p-3 rounded-xl bg-blue-50 text-blue-700 font-medium">
-                        <span class="flex items-center gap-3">
-                            <i class="fa-solid fa-user-gear w-5"></i>
-                            Kelola Admin
-                        </span>
-                        <i class="fa-solid fa-chevron-right text-xs"></i>
+                    <a href="#bank"
+                        class="flex items-center gap-3 rounded-xl bg-blue-50 p-3 font-medium text-blue-700">
+                        <i class="fa-solid fa-building-columns w-5"></i> Bank
                     </a>
-
-                    <a href="#website"
-                        class="flex items-center gap-3 p-3 rounded-xl text-slate-600 hover:bg-slate-50 transition">
-                        <i class="fa-solid fa-globe w-5"></i>
-                        Website
+                    <a href="#progres"
+                        class="flex items-center gap-3 rounded-xl p-3 text-slate-600 transition hover:bg-slate-50">
+                        <i class="fa-solid fa-spinner w-5"></i> Progres
                     </a>
-
-                    <a href="#ongkir"
-                        class="flex items-center gap-3 p-3 rounded-xl text-slate-600 hover:bg-slate-50 transition">
-                        <i class="fa-solid fa-truck w-5"></i>
-                        API Ongkir
+                    <a href="#packing"
+                        class="flex items-center gap-3 rounded-xl p-3 text-slate-600 transition hover:bg-slate-50">
+                        <i class="fa-solid fa-box-open w-5"></i> Packing
                     </a>
-
-                    <a href="#notifikasi"
-                        class="flex items-center gap-3 p-3 rounded-xl text-slate-600 hover:bg-slate-50 transition">
-                        <i class="fa-regular fa-bell w-5"></i>
-                        Notifikasi
-                    </a>
-
-                    <a href="#keamanan"
-                        class="flex items-center gap-3 p-3 rounded-xl text-slate-600 hover:bg-slate-50 transition">
-                        <i class="fa-solid fa-lock w-5"></i>
-                        Keamanan Sistem
+                    <a href="#ekspedisi"
+                        class="flex items-center gap-3 rounded-xl p-3 text-slate-600 transition hover:bg-slate-50">
+                        <i class="fa-solid fa-truck-fast w-5"></i> Ekspedisi
                     </a>
                 </nav>
             </div>
         </aside>
 
-        {{-- Content --}}
-        <div class="lg:col-span-8 xl:col-span-9 space-y-6">
-
-            <section id="profil" class="bg-white rounded-2xl p-6 shadow-sm">
-                <div class="flex flex-col gap-1 mb-6">
-                    <h2 class="text-xl font-semibold text-slate-800">
-                        Profil Akun
-                    </h2>
-
-                    <p class="text-slate-500">
-                        Informasi admin yang tampil di panel pengelolaan SUMUX
-                    </p>
+        <div class="space-y-6 lg:col-span-8 xl:col-span-9">
+            <section id="bank" class="rounded-2xl bg-white p-6 shadow-sm">
+                <div class="mb-6 flex flex-col gap-1">
+                    <h2 class="text-xl font-semibold text-slate-800">Bank</h2>
+                    <p class="text-slate-500">Tambah dan kelola daftar bank yang tersedia untuk pembayaran</p>
                 </div>
 
-                <div class="grid md:grid-cols-2 gap-5">
+                <form action="{{ route('admin.settings.banks.store') }}" method="POST"
+                    class="mb-6 grid gap-4 md:grid-cols-3">
+                    @csrf
                     <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-2">
-                            Nama Lengkap
-                        </label>
-                        <input type="text" value="Admin"
-                            class="w-full border border-slate-300 rounded-xl px-4 py-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
+                        <label class="mb-2 block text-sm font-medium text-slate-700">Nama Bank</label>
+                        <input type="text" name="nama_bank" required placeholder="Contoh: Bank BRI"
+                            class="w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-blue-500 focus:outline-none">
                     </div>
+                    <div>
+                        <label class="mb-2 block text-sm font-medium text-slate-700">Kode Bank</label>
+                        <input type="text" name="kode_bank" required placeholder="Contoh: BRI"
+                            class="w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-blue-500 focus:outline-none">
+                    </div>
+                    <div class="flex items-end gap-3">
+                        <label
+                            class="flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-600">
+                            <input type="checkbox" name="aktif" value="1" checked
+                                class="h-4 w-4 rounded border-slate-300 text-blue-500">
+                            Aktif
+                        </label>
+                        <button type="submit"
+                            class="rounded-xl bg-blue-600 px-4 py-3 font-medium text-white hover:bg-blue-700">
+                            Simpan
+                        </button>
+                    </div>
+                </form>
 
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-2">
-                            Email
-                        </label>
-                        <input type="email" value="admin@sumux.id"
-                            class="w-full border border-slate-300 rounded-xl px-4 py-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-2">
-                            Nomor HP
-                        </label>
-                        <input type="text" placeholder="08xxxxxxxxxx"
-                            class="w-full border border-slate-300 rounded-xl px-4 py-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-2">
-                            Role
-                        </label>
-                        <select
-                            class="w-full border border-slate-300 rounded-xl px-4 py-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
-                            <option>Administrator</option>
-                            <option>Staff Operasional</option>
-                            <option>Keuangan</option>
-                        </select>
-                    </div>
+                <div class="overflow-hidden rounded-2xl border border-slate-200">
+                    <table class="min-w-full divide-y divide-slate-200 text-sm">
+                        <thead class="bg-slate-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left font-semibold text-slate-700">Nama Bank</th>
+                                <th class="px-4 py-3 text-left font-semibold text-slate-700">Kode</th>
+                                <th class="px-4 py-3 text-left font-semibold text-slate-700">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 bg-white">
+                            @forelse ($banks as $bank)
+                                <tr>
+                                    <td class="px-4 py-3 text-slate-700">{{ $bank->nama_bank }}</td>
+                                    <td class="px-4 py-3 text-slate-700">{{ $bank->kode_bank }}</td>
+                                    <td class="px-4 py-3">
+                                        <span
+                                            class="rounded-full px-2.5 py-1 text-xs font-medium {{ $bank->aktif ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600' }}">
+                                            {{ $bank->aktif ? 'Aktif' : 'Nonaktif' }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="3" class="px-4 py-6 text-center text-slate-500">Belum ada data bank.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
                 </div>
             </section>
 
-            <section id="website" class="bg-white rounded-2xl p-6 shadow-sm">
-                <div class="flex flex-col gap-1 mb-6">
-                    <h2 class="text-xl font-semibold text-slate-800">
-                        Website
-                    </h2>
-
-                    <p class="text-slate-500">
-                        Atur identitas dan kontak utama bisnis
-                    </p>
+            <section id="progres" class="rounded-2xl bg-white p-6 shadow-sm">
+                <div class="mb-6 flex flex-col gap-1">
+                    <h2 class="text-xl font-semibold text-slate-800">Progres</h2>
+                    <p class="text-slate-500">Kelola daftar status progres pekerjaan</p>
                 </div>
 
-                <div class="grid md:grid-cols-2 gap-5">
+                <form action="{{ route('admin.settings.progresses.store') }}" method="POST"
+                    class="mb-6 grid gap-4 md:grid-cols-3">
+                    @csrf
                     <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-2">
-                            Nama Website
-                        </label>
-                        <input type="text" value="SUMUX Property & Interior"
-                            class="w-full border border-slate-300 rounded-xl px-4 py-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
+                        <label class="mb-2 block text-sm font-medium text-slate-700">Nama Progres</label>
+                        <input type="text" name="nama" required placeholder="Contoh: Menunggu Konfirmasi"
+                            class="w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-blue-500 focus:outline-none">
                     </div>
-
                     <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-2">
-                            WhatsApp Utama
-                        </label>
-                        <input type="text" placeholder="+62 812 0000 0000"
-                            class="w-full border border-slate-300 rounded-xl px-4 py-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
+                        <label class="mb-2 block text-sm font-medium text-slate-700">Kode</label>
+                        <input type="text" name="kode" placeholder="Contoh: WAIT"
+                            class="w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-blue-500 focus:outline-none">
                     </div>
+                    <div class="flex items-end gap-3">
+                        <label
+                            class="flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-600">
+                            <input type="checkbox" name="aktif" value="1" checked
+                                class="h-4 w-4 rounded border-slate-300 text-blue-500">
+                            Aktif
+                        </label>
+                        <button type="submit"
+                            class="rounded-xl bg-blue-600 px-4 py-3 font-medium text-white hover:bg-blue-700">
+                            Simpan
+                        </button>
+                    </div>
+                </form>
 
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-medium text-slate-700 mb-2">
-                            Alamat Kantor
-                        </label>
-                        <textarea rows="3" placeholder="Masukkan alamat lengkap"
-                            class="w-full border border-slate-300 rounded-xl px-4 py-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"></textarea>
-                    </div>
+                <div class="overflow-hidden rounded-2xl border border-slate-200">
+                    <table class="min-w-full divide-y divide-slate-200 text-sm">
+                        <thead class="bg-slate-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left font-semibold text-slate-700">Nama Progres</th>
+                                <th class="px-4 py-3 text-left font-semibold text-slate-700">Kode</th>
+                                <th class="px-4 py-3 text-left font-semibold text-slate-700">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 bg-white">
+                            @forelse ($progresses as $item)
+                                <tr>
+                                    <td class="px-4 py-3 text-slate-700">{{ $item->nama }}</td>
+                                    <td class="px-4 py-3 text-slate-700">{{ $item->kode ?? '-' }}</td>
+                                    <td class="px-4 py-3">
+                                        <span
+                                            class="rounded-full px-2.5 py-1 text-xs font-medium {{ $item->aktif ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600' }}">
+                                            {{ $item->aktif ? 'Aktif' : 'Nonaktif' }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="3" class="px-4 py-6 text-center text-slate-500">Belum ada data
+                                        progres.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
                 </div>
             </section>
 
-            <section id="ongkir" class="bg-white rounded-2xl p-6 shadow-sm">
-                <div class="flex flex-col gap-1 mb-6">
-                    <h2 class="text-xl font-semibold text-slate-800">
-                        API Ongkir
-                    </h2>
-
-                    <p class="text-slate-500">
-                        Konfigurasi layanan pengiriman untuk halaman cek ongkir
-                    </p>
+            <section id="packing" class="rounded-2xl bg-white p-6 shadow-sm">
+                <div class="mb-6 flex flex-col gap-1">
+                    <h2 class="text-xl font-semibold text-slate-800">Packing</h2>
+                    <p class="text-slate-500">Kelola jenis atau status packing</p>
                 </div>
 
-                <div class="grid md:grid-cols-3 gap-5">
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-medium text-slate-700 mb-2">
-                            API Key
-                        </label>
-                        <div class="flex gap-3">
-                            <input type="password" value="sumux-api-key"
-                                class="w-full border border-slate-300 rounded-xl px-4 py-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
-                            <button class="px-4 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
-                                <i class="fa-regular fa-eye"></i>
-                            </button>
-                        </div>
-                    </div>
-
+                <form action="{{ route('admin.settings.packings.store') }}" method="POST"
+                    class="mb-6 grid gap-4 md:grid-cols-3">
+                    @csrf
                     <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-2">
-                            Kurir Default
-                        </label>
-                        <select
-                            class="w-full border border-slate-300 rounded-xl px-4 py-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
-                            <option>JNE</option>
-                            <option>J&T</option>
-                            <option>SiCepat</option>
-                            <option>AnterAja</option>
-                        </select>
+                        <label class="mb-2 block text-sm font-medium text-slate-700">Nama Packing</label>
+                        <input type="text" name="nama" required placeholder="Contoh: Sudah Dikemas"
+                            class="w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-blue-500 focus:outline-none">
                     </div>
-                </div>
-
-                <div
-                    class="mt-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between rounded-2xl border border-emerald-100 bg-emerald-50 px-5 py-4">
                     <div>
-                        <p class="font-semibold text-emerald-700">
-                            Koneksi API aktif
-                        </p>
-                        <p class="text-sm text-emerald-700/80">
-                            Sinkronisasi terakhir: 28 Juni 2026, 09:30
-                        </p>
+                        <label class="mb-2 block text-sm font-medium text-slate-700">Kode</label>
+                        <input type="text" name="kode" placeholder="Contoh: PACK"
+                            class="w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-blue-500 focus:outline-none">
                     </div>
+                    <div class="flex items-end gap-3">
+                        <label
+                            class="flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-600">
+                            <input type="checkbox" name="aktif" value="1" checked
+                                class="h-4 w-4 rounded border-slate-300 text-blue-500">
+                            Aktif
+                        </label>
+                        <button type="submit"
+                            class="rounded-xl bg-blue-600 px-4 py-3 font-medium text-white hover:bg-blue-700">
+                            Simpan
+                        </button>
+                    </div>
+                </form>
 
-                    <button class="px-5 py-3 rounded-xl bg-white text-emerald-700 hover:bg-emerald-100 transition">
-                        <i class="fa-solid fa-plug-circle-check mr-2"></i>
-                        Tes Koneksi
-                    </button>
+                <div class="overflow-hidden rounded-2xl border border-slate-200">
+                    <table class="min-w-full divide-y divide-slate-200 text-sm">
+                        <thead class="bg-slate-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left font-semibold text-slate-700">Nama Packing</th>
+                                <th class="px-4 py-3 text-left font-semibold text-slate-700">Kode</th>
+                                <th class="px-4 py-3 text-left font-semibold text-slate-700">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 bg-white">
+                            @forelse ($packings as $item)
+                                <tr>
+                                    <td class="px-4 py-3 text-slate-700">{{ $item->nama }}</td>
+                                    <td class="px-4 py-3 text-slate-700">{{ $item->kode ?? '-' }}</td>
+                                    <td class="px-4 py-3">
+                                        <span
+                                            class="rounded-full px-2.5 py-1 text-xs font-medium {{ $item->aktif ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600' }}">
+                                            {{ $item->aktif ? 'Aktif' : 'Nonaktif' }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="3" class="px-4 py-6 text-center text-slate-500">Belum ada data
+                                        packing.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
                 </div>
             </section>
 
-            <section id="notifikasi" class="bg-white rounded-2xl p-6 shadow-sm">
-                <div class="flex flex-col gap-1 mb-6">
-                    <h2 class="text-xl font-semibold text-slate-800">
-                        Notifikasi
-                    </h2>
-
-                    <p class="text-slate-500">
-                        Pilih aktivitas yang perlu dikirim ke admin
-                    </p>
+            <section id="ekspedisi" class="rounded-2xl bg-white p-6 shadow-sm">
+                <div class="mb-6 flex flex-col gap-1">
+                    <h2 class="text-xl font-semibold text-slate-800">Ekspedisi</h2>
+                    <p class="text-slate-500">Kelola daftar ekspedisi yang tersedia</p>
                 </div>
 
-                <div class="space-y-4">
-                    <label class="flex items-center justify-between gap-4 rounded-xl border border-slate-200 p-4">
-                        <span>
-                            <span class="block font-medium text-slate-700">Pesanan baru</span>
-                            <span class="block text-sm text-slate-500">Kirim pemberitahuan saat customer masuk</span>
-                        </span>
-                        <input type="checkbox" checked class="w-5 h-5 rounded border-slate-300 text-blue-500">
-                    </label>
+                <form action="{{ route('admin.settings.ekspedisis.store') }}" method="POST"
+                    class="mb-6 grid gap-4 md:grid-cols-3">
+                    @csrf
+                    <div>
+                        <label class="mb-2 block text-sm font-medium text-slate-700">Nama Ekspedisi</label>
+                        <input type="text" name="nama" required placeholder="Contoh: JNE"
+                            class="w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-blue-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="mb-2 block text-sm font-medium text-slate-700">Kode</label>
+                        <input type="text" name="kode" placeholder="Contoh: JNE"
+                            class="w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-blue-500 focus:outline-none">
+                    </div>
+                    <div class="flex items-end gap-3">
+                        <label
+                            class="flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-600">
+                            <input type="checkbox" name="aktif" value="1" checked
+                                class="h-4 w-4 rounded border-slate-300 text-blue-500">
+                            Aktif
+                        </label>
+                        <button type="submit"
+                            class="rounded-xl bg-blue-600 px-4 py-3 font-medium text-white hover:bg-blue-700">
+                            Simpan
+                        </button>
+                    </div>
+                </form>
 
-                    <label class="flex items-center justify-between gap-4 rounded-xl border border-slate-200 p-4">
-                        <span>
-                            <span class="block font-medium text-slate-700">Pembayaran masuk</span>
-                            <span class="block text-sm text-slate-500">Pantau dokumen dan status pembayaran</span>
-                        </span>
-                        <input type="checkbox" checked class="w-5 h-5 rounded border-slate-300 text-blue-500">
-                    </label>
+                <div class="overflow-hidden rounded-2xl border border-slate-200">
+                    <table class="min-w-full divide-y divide-slate-200 text-sm">
+                        <thead class="bg-slate-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left font-semibold text-slate-700">Nama Ekspedisi</th>
+                                <th class="px-4 py-3 text-left font-semibold text-slate-700">Kode</th>
+                                <th class="px-4 py-3 text-left font-semibold text-slate-700">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 bg-white">
+                            @forelse ($ekspedisis as $item)
+                                <tr>
+                                    <td class="px-4 py-3 text-slate-700">{{ $item->nama }}</td>
+                                    <td class="px-4 py-3 text-slate-700">{{ $item->kode ?? '-' }}</td>
+                                    <td class="px-4 py-3">
+                                        <span
+                                            class="rounded-full px-2.5 py-1 text-xs font-medium {{ $item->aktif ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600' }}">
+                                            {{ $item->aktif ? 'Aktif' : 'Nonaktif' }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="3" class="px-4 py-6 text-center text-slate-500">Belum ada data
+                                        ekspedisi.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
                 </div>
             </section>
-
-            <section id="keamanan" class="bg-white rounded-2xl p-6 shadow-sm">
-                <div class="flex flex-col gap-1 mb-6">
-                    <h2 class="text-xl font-semibold text-slate-800">
-                        Keamanan
-                    </h2>
-
-                    <p class="text-slate-500">
-                        Perbarui password secara berkala untuk menjaga akses admin
-                    </p>
-                </div>
-
-                <div class="grid md:grid-cols-2 gap-5">
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-2">
-                            Password Baru
-                        </label>
-                        <input type="password" placeholder="Masukkan password baru"
-                            class="w-full border border-slate-300 rounded-xl px-4 py-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-2">
-                            Konfirmasi Password
-                        </label>
-                        <input type="password" placeholder="Ulangi password baru"
-                            class="w-full border border-slate-300 rounded-xl px-4 py-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
-                    </div>
-                </div>
-            </section>
-
         </div>
-
     </div>
-
 </div>
 @endsection

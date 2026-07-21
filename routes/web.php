@@ -303,6 +303,19 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'active'])->group(fu
 
         // Settings route
         Route::get('/settings', [SettingsController::class, 'index'])->name('settings');
+        Route::get('/debug', function (\Illuminate\Http\Request $request) {
+            return response()->json([
+                'url' => url('/'),
+                'fullUrl' => $request->fullUrl(),
+                'host' => $request->getHost(),
+                'scheme' => $request->getScheme(),
+                'secure' => $request->isSecure(),
+                'headers' => [
+                    'x-forwarded-proto' => $request->header('x-forwarded-proto'),
+                    'host' => $request->header('host'),
+                ],
+            ]);
+        })->name('debug');
         Route::post('/settings/banks', [SettingsController::class, 'storeBank'])->name('settings.banks.store');
         Route::post('/settings/progresses', [SettingsController::class, 'storeProgress'])->name('settings.progresses.store');
         Route::post('/settings/packings', [SettingsController::class, 'storePacking'])->name('settings.packings.store');

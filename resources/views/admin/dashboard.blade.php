@@ -18,7 +18,7 @@
 
 
     {{-- Statistik --}}
-    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-5 xl:grid-cols-5 gap-4">
 
         <div class="bg-white rounded-2xl p-6 shadow-sm">
 

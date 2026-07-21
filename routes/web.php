@@ -7,6 +7,7 @@ use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\SettingsController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 
@@ -73,7 +74,95 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'active'])->group(fu
 
     // Dashboard route
     Route::get('/dashboard', function () {
-        return view('admin.dashboard');
+        $totalProperty = DB::table('produk')
+            ->where('jenis_produk', 'property')
+            ->where('aktif', true)
+            ->count();
+
+        $totalInterior = DB::table('produk')
+            ->where('jenis_produk', 'interior')
+            ->where('aktif', true)
+            ->count();
+
+        $totalCustomers = DB::table('pelanggan')->count();
+
+        $ordersThisMonth = DB::table('pesanan')
+            ->whereYear('tanggal_pesanan', now()->year)
+            ->whereMonth('tanggal_pesanan', now()->month)
+            ->count();
+
+        $ordersInProgress = DB::table('pesanan')
+            ->whereIn('status_pesanan', ['pending', 'produksi', 'finishing'])
+            ->count();
+
+        $ordersCompleted = DB::table('pesanan')
+            ->whereIn('status_pesanan', ['selesai', 'dikirim'])
+            ->count();
+
+        $totalRevenue = DB::table('pesanan')->sum('total_dibayar');
+
+        $recentActivities = DB::table('pesanan')
+            ->join('pelanggan', 'pelanggan.id', '=', 'pesanan.pelanggan_id')
+            ->select([
+                'pesanan.nomor_pesanan',
+                'pesanan.status_pesanan',
+                'pesanan.tanggal_pesanan',
+                'pesanan.dibuat_pada',
+                'pelanggan.nama_pelanggan',
+            ])
+            ->orderByDesc('pesanan.dibuat_pada')
+            ->orderByDesc('pesanan.tanggal_pesanan')
+            ->limit(5)
+            ->get()
+            ->map(function ($row) {
+                $statusLabel = match ($row->status_pesanan) {
+                    'pending' => 'Pesanan baru',
+                    'produksi' => 'Masuk produksi',
+                    'finishing' => 'Finishing',
+                    'selesai' => 'Selesai',
+                    'dikirim' => 'Dikirim',
+                    'dibatalkan' => 'Dibatalkan',
+                    default => 'Update pesanan',
+                };
+
+                $timestamp = $row->dibuat_pada ?? $row->tanggal_pesanan;
+                $time = $timestamp ? \Illuminate\Support\Carbon::parse($timestamp)->diffForHumans() : '';
+
+                return (object) [
+                    'title' => "{$statusLabel}: {$row->nomor_pesanan}",
+                    'subtitle' => $row->nama_pelanggan,
+                    'time' => $time,
+                ];
+            });
+
+        // Build chart data for last 6 months (labels and revenue)
+        $chartLabels = [];
+        $chartData = [];
+        for ($i = 5; $i >= 0; $i--) {
+            $month = now()->subMonths($i);
+            $label = $month->format('M Y');
+            $chartLabels[] = $label;
+
+            $revenue = DB::table('pesanan')
+                ->whereYear('tanggal_pesanan', $month->year)
+                ->whereMonth('tanggal_pesanan', $month->month)
+                ->sum('total_dibayar');
+
+            $chartData[] = (float) $revenue;
+        }
+
+        return view('admin.dashboard', compact(
+            'totalProperty',
+            'totalInterior',
+            'totalCustomers',
+            'ordersThisMonth',
+            'ordersInProgress',
+            'ordersCompleted',
+            'totalRevenue',
+            'recentActivities',
+            'chartLabels',
+            'chartData'
+        ));
     })->name('dashboard');
 
     // Pesanan routes

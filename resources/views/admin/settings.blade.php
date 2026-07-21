@@ -25,10 +25,10 @@
                         class="flex items-center gap-3 rounded-xl bg-blue-50 p-3 font-medium text-blue-700">
                         <i class="fa-solid fa-building-columns w-5"></i> Bank
                     </a>
-                    <a href="#progres"
+                    {{-- <a href="#progres"
                         class="flex items-center gap-3 rounded-xl p-3 text-slate-600 transition hover:bg-slate-50">
                         <i class="fa-solid fa-spinner w-5"></i> Progres
-                    </a>
+                    </a> --}}
                     <a href="#packing"
                         class="flex items-center gap-3 rounded-xl p-3 text-slate-600 transition hover:bg-slate-50">
                         <i class="fa-solid fa-box-open w-5"></i> Packing
@@ -107,7 +107,7 @@
                 </div>
             </section>
 
-            <section id="progres" class="rounded-2xl bg-white p-6 shadow-sm">
+            {{-- <section id="progres" class="rounded-2xl bg-white p-6 shadow-sm">
                 <div class="mb-6 flex flex-col gap-1">
                     <h2 class="text-xl font-semibold text-slate-800">Progres</h2>
                     <p class="text-slate-500">Kelola daftar status progres pekerjaan</p>
@@ -164,13 +164,13 @@
                             @empty
                                 <tr>
                                     <td colspan="3" class="px-4 py-6 text-center text-slate-500">Belum ada data
-                                        progres.</td>
+                                        progres. Tambahkan melalui form di atas.</td>
                                 </tr>
                             @endforelse
                         </tbody>
                     </table>
                 </div>
-            </section>
+            </section> --}}
 
             <section id="packing" class="rounded-2xl bg-white p-6 shadow-sm">
                 <div class="mb-6 flex flex-col gap-1">
@@ -212,6 +212,7 @@
                                 <th class="px-4 py-3 text-left font-semibold text-slate-700">Nama Packing</th>
                                 <th class="px-4 py-3 text-left font-semibold text-slate-700">Kode</th>
                                 <th class="px-4 py-3 text-left font-semibold text-slate-700">Status</th>
+                                {{-- <th class="px-4 py-3 text-left font-semibold text-slate-700">Aksi</th> --}}
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 bg-white">
@@ -225,6 +226,12 @@
                                             {{ $item->aktif ? 'Aktif' : 'Nonaktif' }}
                                         </span>
                                     </td>
+                                    {{-- <td class="px-4 py-3">
+                                        <button type="button"
+                                            class="rounded-full bg-red-200 px-3 py-1 text-sm font-medium text-red-700 hover:bg-red-300" >
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td> --}}
                                 </tr>
                             @empty
                                 <tr>

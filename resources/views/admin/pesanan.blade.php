@@ -296,7 +296,7 @@
                                     @foreach ($statusPacking as $status)
                                         <option value="{{ $status }}"
                                             {{ $order->status_packing === $status ? 'selected' : '' }}>
-                                            {{ ucfirst($status) }}
+                                            {{ ucfirst(str_replace('_', ' ', $status)) }}
                                         </option>
                                     @endforeach
                                 </select>
@@ -336,7 +336,7 @@
                                     @foreach ($kurir as $k)
                                         <option value="{{ $k->id }}"
                                             {{ (int) $order->kurir_id === $k->id ? 'selected' : '' }}>
-                                            {{ $k->nama_kurir }} - {{ $k->nama_layanan }}
+                                            {{ $k->nama }}
                                         </option>
                                     @endforeach
                                 </select>
@@ -485,7 +485,8 @@
                                 <select name="status_packing" required
                                     class="w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-blue-500 focus:outline-none">
                                     @foreach ($statusPacking as $status)
-                                        <option value="{{ $status }}">{{ ucfirst($status) }}</option>
+                                        <option value="{{ $status }}">
+                                            {{ ucfirst(str_replace('_', ' ', $status)) }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -523,7 +524,7 @@
                                     <option value="" selected disabled hidden>Pilih Ekspedisi</option>
                                     @foreach ($kurir as $k)
                                         <option value="{{ $k->id }}">
-                                            {{ $k->nama_kurir }} - {{ $k->nama_layanan }}
+                                            {{ $k->nama }}
                                         </option>
                                     @endforeach
                                 </select>

@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 
 class PesananController extends Controller
 {
@@ -84,6 +85,64 @@ class PesananController extends Controller
         }
 
         return 'DP';
+    }
+
+    private function getProgressStatuses(): array
+    {
+        $defaults = ['pending', 'produksi', 'finishing', 'selesai', 'dikirim', 'dibatalkan'];
+        $custom = DB::table('progres')
+            ->where('aktif', true)
+            ->orderBy('urutan')
+            ->orderBy('nama')
+            ->pluck('nama')
+            ->map(function (string $name): string {
+                return strtolower(str_replace([' ', '/', '-'], '_', $name));
+            })
+            ->filter()
+            ->values()
+            ->all();
+
+        return array_values(array_unique(array_merge($defaults, $custom)));
+    }
+
+    private function getPackingStatuses(): array
+    {
+        $custom = DB::table('packing')
+            ->where('aktif', true)
+            ->orderBy('urutan')
+            ->orderBy('nama')
+            ->pluck('nama')
+            ->map(function (string $name): string {
+                return strtolower(str_replace([' ', '/', '-'], '_', $name));
+            })
+            ->filter()
+            ->values()
+            ->all();
+
+        return $custom ?: ['belum', 'proses', 'selesai'];
+    }
+
+
+    private function getEkspedisiOptions(): \Illuminate\Support\Collection
+    {
+        return DB::table('ekspedisi')
+            ->where('aktif', true)
+            ->orderBy('urutan')
+            ->orderBy('nama')
+            ->get();
+    }
+
+    private function getPengirimanStatus(string $statusPesanan): string
+    {
+        return match ($statusPesanan) {
+            'pending' => 'menunggu',
+            'produksi' => 'menunggu',
+            'finishing' => 'menunggu',
+            'selesai' => 'diproses',
+            'dikirim' => 'dikirim',
+            'dibatalkan' => 'gagal',
+            default => 'menunggu',
+        };
     }
 
     private function paymentMethodFromBank(?object $bank): string
@@ -201,10 +260,9 @@ class PesananController extends Controller
             ->orderBy('nama_bank')
             ->get();
 
-        $kurir = DB::table('kurir')
-            ->orderBy('urutan')
-            ->orderBy('nama_kurir')
-            ->get();
+        $statusPacking = $this->getPackingStatuses();
+        $statusPesanan = $this->getProgressStatuses();
+        $kurir = $this->getEkspedisiOptions();
 
         $paymentBanks = DB::table('pembayaran')
             ->whereIn('pesanan_id', $pesanan->pluck('id'))
@@ -220,13 +278,22 @@ class PesananController extends Controller
             ->get()
             ->groupBy('pesanan_id');
 
+        $progres = DB::table('progres')
+            ->where('aktif', true)
+            ->orderBy('urutan')
+            ->orderBy('nama')
+            ->get();
+
+
+
+
         return view('admin.pesanan', [
             'pesanan' => $pesanan,
             'detailPesanan' => $detailPesanan,
             'nextNomorPesanan' => $this->generateNomorPesanan(),
-            'statusPesanan' => ['produksi', 'finishing', 'selesai', 'dikirim', 'dibatalkan', 'pending'],
+            'statusPesanan' => $statusPesanan,
             'statusPembayaran' => ['belum_bayar', 'DP', 'lunas'],
-            'statusPacking' => ['belum', 'proses', 'selesai'],
+            'statusPacking' => $statusPacking,
             'statusPengiriman' => ['menunggu', 'diproses', 'dikirim', 'diterima', 'gagal'],
             'customers' => DB::table('pelanggan')->orderBy('nama_pelanggan')->get(),
             'products' => DB::table('produk')->where('aktif', true)->orderBy('nama_produk')->get(),
@@ -263,14 +330,17 @@ class PesananController extends Controller
         $customerEmail = $request->filled('customer_email') ? $request->customer_email : null;
         $request->merge(['customer_email' => $customerEmail]);
 
+        $statusPesanan = $this->getProgressStatuses();
+        $statusPacking = $this->getPackingStatuses();
+
         $request->validate([
             'customer_name' => ['required', 'string', 'max:255'],
             'customer_email' => ['nullable', 'email', 'max:255'],
             'nomor_whatsapp' => ['nullable', 'string', 'max:30'],
             // 'nomor_pesanan' => ['required', 'string', 'max:100', 'unique:pesanan,nomor_pesanan'],
             'tanggal_pesanan' => ['required', 'date'],
-            'status_pesanan' => ['required', 'in:produksi,finishing,selesai,dikirim,dibatalkan,pending'],
-            'status_packing' => ['required', 'in:belum,proses,selesai'],
+            'status_pesanan' => ['required', Rule::in($statusPesanan)],
+            'status_packing' => ['required', Rule::in($statusPacking)],
             'total_tagihan' => ['nullable', 'numeric'],
             'total_dibayar' => ['nullable', 'numeric'],
             'metode_pembayaran' => ['required', 'exists:bank_customer,id'],
@@ -386,17 +456,17 @@ class PesananController extends Controller
             }
         }
 
-        $kurir = DB::table('kurir')->find($request->kurir_id);
+        $ekspedisi = DB::table('ekspedisi')->find($request->kurir_id);
 
-        if ($kurir) {
+        if ($ekspedisi) {
             DB::table('pengiriman')->insert([
                 'pesanan_id' => $pesananId,
-                'kurir_id' => $kurir->id,
-                'kode_kurir' => $kurir->kode_kurir,
-                'nama_kurir' => $kurir->nama_kurir,
-                'layanan_kurir' => $kurir->nama_layanan,
+                'kurir_id' => $ekspedisi->id,
+                'kode_kurir' => $ekspedisi->kode,
+                'nama_kurir' => $ekspedisi->nama,
+                'layanan_kurir' => $ekspedisi->nama,
                 'biaya_ongkir' => $biayaOngkir,
-                'status_pengiriman' => $map[$request->status_pesanan] ?? 'menunggu',
+                'status_pengiriman' => $this->getPengirimanStatus($request->status_pesanan),
                 'alamat_tujuan' => $request->alamat_pengiriman,
                 'dibuat_pada' => now(),
                 'diperbarui_pada' => now(),
@@ -427,14 +497,17 @@ class PesananController extends Controller
         $customerEmail = $request->filled('customer_email') ? $request->customer_email : null;
         $request->merge(['customer_email' => $customerEmail]);
 
+        $statusPesanan = $this->getProgressStatuses();
+        $statusPacking = $this->getPackingStatuses();
+
         $request->validate([
             'customer_name' => ['required', 'string', 'max:255'],
             'customer_email' => ['nullable', 'email', 'max:255'],
             'nomor_whatsapp' => ['nullable', 'string', 'max:30'],
             'nomor_pesanan' => ['required', 'string', 'max:100', 'unique:pesanan,nomor_pesanan,' . $id],
             'tanggal_pesanan' => ['required', 'date'],
-            'status_pesanan' => ['required', 'in:produksi,finishing,selesai,dikirim,dibatalkan,pending'],
-            'status_packing' => ['required', 'in:belum,proses,selesai'],
+            'status_pesanan' => ['required', Rule::in($statusPesanan)],
+            'status_packing' => ['required', Rule::in($statusPacking)],
             'total_tagihan' => ['nullable', 'numeric'],
             'total_dibayar' => ['nullable', 'numeric'],
             'kurir_id' => ['nullable', 'exists:kurir,id'],
@@ -547,19 +620,19 @@ class PesananController extends Controller
             }
         }
 
-        $kurir = $request->filled('kurir_id') ? DB::table('kurir')->find($request->kurir_id) : null;
+        $ekspedisi = $request->filled('kurir_id') ? DB::table('ekspedisi')->find($request->kurir_id) : null;
 
-        if ($kurir) {
+        if ($ekspedisi) {
             $existingPengiriman = DB::table('pengiriman')
                 ->where('pesanan_id', $id)
                 ->orderByDesc('id')
                 ->first();
 
             $pengirimanData = [
-                'kurir_id' => $kurir->id,
-                'kode_kurir' => $kurir->kode_kurir,
-                'nama_kurir' => $kurir->nama_kurir,
-                'layanan_kurir' => $kurir->nama_layanan,
+                'kurir_id' => $ekspedisi->id,
+                'kode_kurir' => $ekspedisi->kode,
+                'nama_kurir' => $ekspedisi->nama,
+                'layanan_kurir' => $ekspedisi->nama,
                 'biaya_ongkir' => $biayaOngkir,
                 'alamat_tujuan' => $request->alamat_pengiriman,
                 'diperbarui_pada' => now(),
@@ -672,6 +745,9 @@ class PesananController extends Controller
             abort(404);
         }
 
+        $statusPesanan = $this->getProgressStatuses();
+        $statusPacking = $this->getPackingStatuses();
+
         $request->validate([
             'field' => ['required', 'in:status_pesanan,status_packing,kurir_id'],
             'value' => ['nullable', 'string'],
@@ -682,7 +758,7 @@ class PesananController extends Controller
 
         if ($field === 'status_pesanan') {
             $request->validate([
-                'value' => ['required', 'in:produksi,finishing,selesai,dikirim,dibatalkan,pending'],
+                'value' => ['required', Rule::in($statusPesanan)],
             ]);
             DB::table('pesanan')->where('id', $id)->update([
                 'status_pesanan' => $value,
@@ -693,7 +769,7 @@ class PesananController extends Controller
 
         if ($field === 'status_packing') {
             $request->validate([
-                'value' => ['required', 'in:belum,proses,selesai'],
+                'value' => ['required', Rule::in($statusPacking)],
             ]);
             DB::table('pesanan')->where('id', $id)->update([
                 'status_packing' => $value,
@@ -703,9 +779,9 @@ class PesananController extends Controller
 
         if ($field === 'kurir_id') {
             $request->validate([
-                'value' => ['required', 'exists:kurir,id'],
+                'value' => ['required', 'exists:ekspedisi,id'],
             ]);
-            $kurir = DB::table('kurir')->find($value);
+            $ekspedisi = DB::table('ekspedisi')->find($value);
 
             $existingPengiriman = DB::table('pengiriman')
                 ->where('pesanan_id', $id)
@@ -713,10 +789,10 @@ class PesananController extends Controller
                 ->first();
 
             $pengirimanData = [
-                'kurir_id' => $kurir->id,
-                'kode_kurir' => $kurir->kode_kurir,
-                'nama_kurir' => $kurir->nama_kurir,
-                'layanan_kurir' => $kurir->nama_layanan,
+                'kurir_id' => $ekspedisi->id,
+                'kode_kurir' => $ekspedisi->kode,
+                'nama_kurir' => $ekspedisi->nama,
+                'layanan_kurir' => $ekspedisi->nama,
                 'alamat_tujuan' => $order->alamat_pengiriman,
                 'diperbarui_pada' => now(),
             ];

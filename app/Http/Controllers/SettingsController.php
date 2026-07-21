@@ -17,25 +17,22 @@ class SettingsController extends Controller
             ->get()
             : collect();
 
-        $progresses = Schema::hasTable('setting_items')
-            ? DB::table('setting_items')
-            ->where('kategori', 'progres')
+        $progresses = Schema::hasTable('progres')
+            ? DB::table('progres')
             ->orderBy('urutan')
             ->orderBy('nama')
             ->get()
             : collect();
 
-        $packings = Schema::hasTable('setting_items')
-            ? DB::table('setting_items')
-            ->where('kategori', 'packing')
+        $packings = Schema::hasTable('packing')
+            ? DB::table('packing')
             ->orderBy('urutan')
             ->orderBy('nama')
             ->get()
             : collect();
 
-        $ekspedisis = Schema::hasTable('setting_items')
-            ? DB::table('setting_items')
-            ->where('kategori', 'ekspedisi')
+        $ekspedisis = Schema::hasTable('ekspedisi')
+            ? DB::table('ekspedisi')
             ->orderBy('urutan')
             ->orderBy('nama')
             ->get()
@@ -77,8 +74,7 @@ class SettingsController extends Controller
             'nama.required' => 'Nama progres wajib diisi.',
         ]);
 
-        DB::table('setting_items')->insert([
-            'kategori' => 'progres',
+        DB::table('progres')->insert([
             'nama' => $data['nama'],
             'kode' => $data['kode'] ? strtoupper($data['kode']) : null,
             'aktif' => $request->boolean('aktif', true),
@@ -100,8 +96,7 @@ class SettingsController extends Controller
             'nama.required' => 'Nama packing wajib diisi.',
         ]);
 
-        DB::table('setting_items')->insert([
-            'kategori' => 'packing',
+        DB::table('packing')->insert([
             'nama' => $data['nama'],
             'kode' => $data['kode'] ? strtoupper($data['kode']) : null,
             'aktif' => $request->boolean('aktif', true),
@@ -111,6 +106,13 @@ class SettingsController extends Controller
         ]);
 
         return redirect()->route('admin.settings')->with('success', 'Data packing berhasil ditambahkan.');
+    }
+
+    public function destroyPacking(int $id)
+    {
+        DB::table('packing')->where('id', $id)->delete();
+
+        return redirect()->route('admin.settings')->with('success', 'Data packing berhasil dihapus.');
     }
 
     public function storeEkspedisi(Request $request)
@@ -123,8 +125,7 @@ class SettingsController extends Controller
             'nama.required' => 'Nama ekspedisi wajib diisi.',
         ]);
 
-        DB::table('setting_items')->insert([
-            'kategori' => 'ekspedisi',
+        DB::table('ekspedisi')->insert([
             'nama' => $data['nama'],
             'kode' => $data['kode'] ? strtoupper($data['kode']) : null,
             'aktif' => $request->boolean('aktif', true),

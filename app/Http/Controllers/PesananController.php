@@ -154,26 +154,30 @@ class PesananController extends Controller
         };
     }
 
-    public function index(Request $request)
+    /**
+     * Query dasar daftar pesanan (join + kolom + filter) dipakai bareng
+     * oleh index() (tampilan tabel) dan export() (ekspor Excel/CSV).
+     */
+    private function buildPesananQuery(Request $request)
     {
         $query = DB::table('pesanan')
             ->join('pelanggan', 'pelanggan.id', '=', 'pesanan.pelanggan_id')
             ->leftJoin('pembayaran', function ($join) {
                 $join->on('pembayaran.pesanan_id', '=', 'pesanan.id')
                     ->whereRaw('pembayaran.id = (
-                select max(p2.id)
-                from pembayaran as p2
-                where p2.pesanan_id = pesanan.id
-            )');
+            select max(p2.id)
+            from pembayaran as p2
+            where p2.pesanan_id = pesanan.id
+        )');
             })
             ->leftJoin('bank_customer', 'bank_customer.nama_bank', '=', 'pembayaran.nama_bank')
             ->leftJoin('pengiriman', function ($join) {
                 $join->on('pengiriman.pesanan_id', '=', 'pesanan.id')
                     ->whereRaw('pengiriman.id = (
-                        select max(pg2.id)
-                        from pengiriman as pg2
-                        where pg2.pesanan_id = pesanan.id
-                    )');
+                    select max(pg2.id)
+                    from pengiriman as pg2
+                    where pg2.pesanan_id = pesanan.id
+                )');
             })
             ->select([
                 'pesanan.id',
@@ -186,6 +190,11 @@ class PesananController extends Controller
                 'pesanan.total_dibayar',
                 'pesanan.sisa_tagihan',
                 'pesanan.alamat_pengiriman',
+                'pesanan.provinsi_pengiriman',
+                'pesanan.kota_pengiriman',
+                'pesanan.kecamatan_pengiriman',
+                'pesanan.kelurahan_pengiriman',
+                'pesanan.kode_pos_pengiriman',
                 'pesanan.biaya_ongkir',
                 'pelanggan.nama_pelanggan',
                 'pelanggan.email as pelanggan_email',
@@ -200,8 +209,6 @@ class PesananController extends Controller
                 'pengiriman.layanan_kurir',
                 'pengiriman.nomor_resi',
             ]);
-
-
 
         if ($request->filled('q')) {
             $keyword = $request->string('q')->toString();
@@ -223,6 +230,20 @@ class PesananController extends Controller
         if ($request->filled('status')) {
             $query->where('pesanan.status_pesanan', $request->string('status')->toString());
         }
+
+        if ($request->has('ids')) {
+            $ids = array_filter((array) $request->input('ids', []));
+            if (! empty($ids)) {
+                $query->whereIn('pesanan.id', $ids);
+            }
+        }
+
+        return $query;
+    }
+
+    public function index(Request $request)
+    {
+        $query = $this->buildPesananQuery($request);
 
         $perPageOptions = ['8', '25', '50', 'all'];
         $perPage = $request->input('per_page', '8');
@@ -305,6 +326,86 @@ class PesananController extends Controller
         ]);
     }
 
+    /**
+     * Ekspor daftar pesanan (mengikuti filter yang sedang aktif di halaman)
+     * ke file CSV yang bisa langsung dibuka/dicetak lewat Excel.
+     */
+    public function export(Request $request)
+    {
+        $rows = $this->buildPesananQuery($request)
+            ->orderByDesc('pesanan.tanggal_pesanan')
+            ->orderByDesc('pesanan.id')
+            ->get();
+
+        $columns = [
+            'No. Pesanan',
+            'Tanggal Pesanan',
+            'Nama Customer',
+            'No. WhatsApp',
+            'Email',
+            'Alamat Pengiriman',
+            'Status Pesanan',
+            'Status Packing',
+            'Total Tagihan',
+            'Total Dibayar',
+            'Sisa Tagihan',
+            'Status Pembayaran',
+            'Metode / Bank Pembayaran',
+            'Biaya Ongkir',
+            'Ekspedisi',
+            'No. Resi',
+        ];
+
+        $filename = 'pesanan_' . now()->format('Ymd_His') . '.csv';
+
+        return response()->streamDownload(function () use ($rows, $columns) {
+            $handle = fopen('php://output', 'w');
+
+            // BOM UTF-8 supaya Excel menampilkan karakter (Rp, huruf non-latin) dengan benar
+            fwrite($handle, "sep=;\r\n");
+            fputcsv($handle, $columns, ';');
+
+            foreach ($rows as $row) {
+                $alamatLengkap = implode(', ', array_filter([
+                    $row->alamat_pengiriman,
+                    $row->kelurahan_pengiriman,
+                    $row->kecamatan_pengiriman,
+                    $row->kota_pengiriman,
+                    $row->provinsi_pengiriman,
+                    $row->kode_pos_pengiriman,
+                ]));
+
+                $ekspedisi = trim(implode(' - ', array_filter([
+                    $row->nama_kurir,
+                    $row->layanan_kurir,
+                ])));
+
+                fputcsv($handle, [
+                    $row->nomor_pesanan,
+                    $row->tanggal_pesanan,
+                    $row->nama_pelanggan,
+                    $row->nomor_whatsapp,
+                    $row->pelanggan_email ?: $row->pesanan_email,
+                    $alamatLengkap,
+                    ucfirst((string) $row->status_pesanan),
+                    ucfirst((string) $row->status_packing),
+                    number_format((float) $row->total_tagihan, 0, ',', '.'),
+                    number_format((float) $row->total_dibayar, 0, ',', '.'),
+                    number_format((float) $row->sisa_tagihan, 0, ',', '.'),
+                    $row->status_pembayaran,
+                    trim(($row->metode_pembayaran ?? '') . ' ' . ($row->nama_bank ? "({$row->nama_bank})" : '')),
+                    number_format((float) $row->biaya_ongkir, 0, ',', '.'),
+                    $ekspedisi,
+                    $row->nomor_resi,
+                ], ';');
+            }
+
+            fclose($handle);
+        }, $filename, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+        ]);
+    }
+
     public function store(Request $request)
     {
         $itemPrices = array_map(fn($value) => $this->parseMoney($value), $request->input('item_price', []));
@@ -358,6 +459,11 @@ class PesananController extends Controller
             'item_photo' => ['nullable', 'array'],
             'item_photo.*' => ['nullable', 'image', 'max:5120'],
             'alamat_pengiriman' => ['required', 'string'],
+            'provinsi' => ['required', 'string', 'max:255'],
+            'kota_kabupaten' => ['required', 'string', 'max:255'],
+            'kecamatan' => ['required', 'string', 'max:255'],
+            'kelurahan' => ['required', 'string', 'max:255'],
+            'kode_pos' => ['nullable', 'string', 'max:10'],
             'catatan' => ['nullable', 'string'],
         ]);
 
@@ -393,6 +499,11 @@ class PesananController extends Controller
             'total_dibayar' => $totalDibayar,
             'sisa_tagihan' => max($totalTagihan - $totalDibayar, 0),
             'alamat_pengiriman' => $request->alamat_pengiriman,
+            'provinsi_pengiriman' => $request->provinsi,
+            'kota_pengiriman' => $request->kota_kabupaten,
+            'kecamatan_pengiriman' => $request->kecamatan,
+            'kelurahan_pengiriman' => $request->kelurahan,
+            'kode_pos_pengiriman' => $request->kode_pos,
             'catatan' => $request->catatan,
             'dibuat_pada' => now(),
             'diperbarui_pada' => now(),
@@ -526,6 +637,11 @@ class PesananController extends Controller
             'item_existing_photo' => ['nullable', 'array'],
             'item_existing_photo.*' => ['nullable', 'string'],
             'alamat_pengiriman' => ['nullable', 'string'],
+            'provinsi' => ['required', 'string', 'max:255'],
+            'kota_kabupaten' => ['required', 'string', 'max:255'],
+            'kecamatan' => ['required', 'string', 'max:255'],
+            'kelurahan' => ['required', 'string', 'max:255'],
+            'kode_pos' => ['nullable', 'string', 'max:10'],
             'catatan' => ['nullable', 'string'],
         ]);
 
@@ -564,6 +680,11 @@ class PesananController extends Controller
             'total_dibayar' => $totalDibayar,
             'sisa_tagihan' => max($totalTagihan - $totalDibayar, 0),
             'alamat_pengiriman' => $request->alamat_pengiriman,
+            'provinsi_pengiriman' => $request->provinsi,
+            'kota_pengiriman' => $request->kota_kabupaten,
+            'kecamatan_pengiriman' => $request->kecamatan,
+            'kelurahan_pengiriman' => $request->kelurahan,
+            'kode_pos_pengiriman' => $request->kode_pos,
             'catatan' => $request->catatan,
             'diperbarui_pada' => now(),
         ]);
@@ -713,6 +834,11 @@ class PesananController extends Controller
             'nomor_whatsapp' => $order->nomor_whatsapp,
             'customer_email' => $order->pelanggan_email,
             'alamat_pengiriman' => $order->alamat_pengiriman,
+            'provinsi' => $order->provinsi_pengiriman,
+            'kota_kabupaten' => $order->kota_pengiriman,
+            'kecamatan' => $order->kecamatan_pengiriman,
+            'kelurahan' => $order->kelurahan_pengiriman,
+            'kode_pos' => $order->kode_pos_pengiriman,
             'tanggal_pesanan' => $order->tanggal_pesanan,
             'status_pesanan' => $order->status_pesanan,
             'status_packing' => $order->status_packing,
@@ -867,6 +993,23 @@ class PesananController extends Controller
 
 
         return response()->json(['success' => true]);
+    }
+
+    public function bulkDestroy(Request $request)
+    {
+        $ids = $request->input('ids', []);
+        if (! is_array($ids) || empty($ids)) {
+            return redirect()->route('admin.pesanan')->with('success', 'Tidak ada pesanan yang dipilih');
+        }
+
+        $validIds = array_filter($ids, fn($v) => is_numeric($v));
+
+        DB::table('detail_pesanan')->whereIn('pesanan_id', $validIds)->delete();
+        DB::table('pembayaran')->whereIn('pesanan_id', $validIds)->delete();
+        DB::table('pengiriman')->whereIn('pesanan_id', $validIds)->delete();
+        DB::table('pesanan')->whereIn('id', $validIds)->delete();
+
+        return redirect()->route('admin.pesanan')->with('success', 'Pesanan terpilih berhasil dihapus');
     }
 
     public function destroy($id)

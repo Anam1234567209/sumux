@@ -20,15 +20,17 @@
 
         <div class="flex gap-3">
 
-            <button class="px-5 py-3 rounded-xl bg-blue-400 borde text-white hover:bg-blue-500 transition">
+            {{-- <button class="px-5 py-3 rounded-xl bg-blue-400 borde text-white hover:bg-blue-500 transition">
                 <i class="fas fa-print"></i>
                 Export PDF
 
-            </button>
+            </button> --}}
 
-            <button class="px-5 py-3 rounded-xl bg-green-600 text-white hover:bg-green-700 transition">
-                <i class="fas fa-file-excel"></i>
-                Export Excel
+            <button
+                onclick="window.location.href='{{ route('admin.transactions.export') }}?'+new URLSearchParams(window.location.search).toString()"
+                class="px-5 py-3 rounded-xl bg-green-600 text-white hover:bg-green-700 transition">
+                <i class="fas fa-file"></i>
+                Export
 
             </button>
 
@@ -86,6 +88,7 @@
 
                         <tr class="bg-slate-50/70 text-slate-500 uppercase text-[12px] tracking-wide">
 
+                            <th class="p-5">No.</th>
                             <th class="p-5">Invoice</th>
                             <th class="p-5">Customer</th>
                             <th class="p-5">Tanggal</th>
@@ -102,6 +105,10 @@
                         @forelse ($transactions as $trx)
                             <tr
                                 class="border-t border-slate-100 hover:bg-emerald-50/40 transition duration-200 whitespace-nowrap">
+
+                                <td class="p-5 text-center">
+                                    {{ $loop->iteration + ($transactions->currentPage() - 1) * $transactions->perPage() }}
+                                </td>
 
                                 <td class="p-5">
                                     <div class="font-semibold">

@@ -167,10 +167,14 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'active'])->group(fu
 
     // Pesanan routes
     Route::get('/pesanan', [PesananController::class, 'index'])->name('pesanan');
+    Route::get('/pesanan/export', [PesananController::class, 'export'])->name('pesanan.export');
+    Route::get('/laporan/export', [LaporanController::class, 'export'])->name('laporan.export');
+    Route::get('/transactions/export', [TransactionController::class, 'export'])->name('transactions.export');
     Route::get('/pesanan/{id}/edit', [PesananController::class, 'edit'])->name('pesanan.edit');
     Route::post('/pesanan', [PesananController::class, 'store'])->name('pesanan.store');
     Route::put('/pesanan/{id}', [PesananController::class, 'update'])->name('pesanan.update');
     Route::patch('/pesanan/{id}/quick-update', [PesananController::class, 'quickUpdate'])->name('pesanan.quick-update');
+    Route::post('/pesanan/bulk-delete', [PesananController::class, 'bulkDestroy'])->name('pesanan.bulk-delete');
     Route::post('/pesanan/{id}/payments', [PesananController::class, 'addPayment'])->name('pesanan.payments.store');
     Route::delete('/pesanan/{id}', [PesananController::class, 'destroy'])->name('pesanan.destroy');
 

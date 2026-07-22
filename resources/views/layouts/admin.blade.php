@@ -134,14 +134,14 @@
                         </button> --}}
 
                         {{-- Notification --}}
-                        <button class="relative w-12 h-12 rounded-xl hover:bg-slate-100 transition">
+                        {{-- <button class="relative w-12 h-12 rounded-xl hover:bg-slate-100 transition">
 
                             <i class="fa-regular fa-bell text-lg"></i>
 
                             <span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full">
                             </span>
 
-                        </button>
+                        </button> --}}
 
                         {{-- Profile --}}
                         <button id="profile-btn"

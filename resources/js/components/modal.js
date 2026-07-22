@@ -179,6 +179,11 @@ function fillOrderForm(order) {
     setFieldValue('biaya_ongkir', order.biaya_ongkir ? formatRupiah(order.biaya_ongkir) : '0');
     setFieldValue('metode_pembayaran', order.metode_pembayaran_id ?? '');
     setFieldValue('kurir_id', order.kurir_id);
+    setFieldValue('provinsi', order.provinsi ?? '');
+    setFieldValue('kota_kabupaten', order.kota_kabupaten ?? '');
+    setFieldValue('kecamatan', order.kecamatan ?? '');
+    setFieldValue('kelurahan', order.kelurahan ?? '');
+    setFieldValue('kode_pos', order.kode_pos ?? '');
 
     const productRows = document.getElementById('productRows');
     if (productRows) {
@@ -186,6 +191,60 @@ function fillOrderForm(order) {
         const items = Array.isArray(order.items) && order.items.length ? order.items : [{}];
         items.forEach((item) => productRows.appendChild(createProductRow(item)));
     }
+}
+
+// RajaOngkir destination autocomplete for kota/kabupaten
+const ongkirSuggestions = [];
+let ongkirDebounceTimer = null;
+function bindOngkirAutocomplete() {
+    const kotaInput = getField('kota_kabupaten');
+    if (!kotaInput) return;
+
+    // create datalist
+    let listId = 'ongkir-datalist';
+    if (!document.getElementById(listId)) {
+        const dl = document.createElement('datalist');
+        dl.id = listId;
+        document.body.appendChild(dl);
+    }
+    kotaInput.setAttribute('list', listId);
+
+    kotaInput.addEventListener('input', function (e) {
+        const q = String(e.target.value || '').trim();
+        if (q.length < 2) return;
+
+        clearTimeout(ongkirDebounceTimer);
+        ongkirDebounceTimer = setTimeout(() => {
+            fetch(`/api/ongkir/destinations?search=${encodeURIComponent(q)}`)
+                .then(res => res.json())
+                .then(json => {
+                    if (!json.ok || !Array.isArray(json.data)) return;
+                    const dl = document.getElementById(listId);
+                    dl.innerHTML = '';
+                    ongkirSuggestions.length = 0;
+                    json.data.forEach(item => {
+                        const opt = document.createElement('option');
+                        // use label which contains full destination info
+                        opt.value = item.label || `${item.city_name} - ${item.district_name}`;
+                        dl.appendChild(opt);
+                        ongkirSuggestions.push(item);
+                    });
+                })
+                .catch(() => {});
+        }, 300);
+    });
+
+    kotaInput.addEventListener('change', function (e) {
+        const val = String(e.target.value || '').trim();
+        const found = ongkirSuggestions.find(s => s.label === val || s.city_name === val || `${s.city_name} - ${s.district_name}` === val);
+        if (found) {
+            setFieldValue('provinsi', found.province_name ?? '');
+            setFieldValue('kota_kabupaten', found.city_name ?? '');
+            setFieldValue('kecamatan', found.district_name ?? '');
+            setFieldValue('kelurahan', found.subdistrict_name ?? '');
+            setFieldValue('kode_pos', found.zip_code ?? '');
+        }
+    });
 }
 
 function openOrderModal(orderId = null) {
@@ -286,6 +345,7 @@ document.addEventListener('DOMContentLoaded', function () {
     bindFilePreviews();
     bindAlerts();
     bindQuickEditSelects();
+    bindOngkirAutocomplete();
 });
 
 const QUICK_EDIT_COLOR_MAP = {

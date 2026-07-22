@@ -19,15 +19,11 @@
 
         <div class="flex gap-3">
 
-            <button class="px-5 py-3 rounded-xl bg-blue-400 text-white hover:bg-blue-500">
-                <i class="fas fa-file-pdf"></i>
-                Export PDF
-
-            </button>
-
-            <button class="px-5 py-3 rounded-xl bg-green-600 text-white hover:bg-green-700">
-                <i class="fas fa-file-excel"></i>
-                Export Excel
+            <button
+                onclick="window.location.href='{{ route('admin.laporan.export') }}?'+new URLSearchParams(window.location.search).toString()"
+                class="px-5 py-3 rounded-xl bg-green-600 text-white hover:bg-green-700">
+                <i class="fas fa-file"></i>
+                Export
 
             </button>
 
@@ -105,10 +101,10 @@
 
     <div class="bg-white rounded-2xl max-w-full overflow-hidden p-5">
         <div class="overflow-x-auto   border-slate-100 bg-white">
-            <table class="w-full">
+            <table class="w-full min-w-200 table-auto text-sm">
                 <thead>
 
-                    <tr class="bg-slate-50">
+                    <tr class="bg-slate-50/70 text-slate-500 uppercase text-[12px] tracking-wide">
 
                         <th class="p-4">No</th>
 

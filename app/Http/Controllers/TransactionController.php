@@ -60,4 +60,77 @@ class TransactionController extends Controller
 
         return view('admin.transactions', compact('transactions', 'statusPesanan', 'perPage'));
     }
+
+    public function export(Request $request)
+    {
+        $query = DB::table('pesanan')
+            ->join('pelanggan', 'pelanggan.id', '=', 'pesanan.pelanggan_id')
+            ->select([
+                'pesanan.nomor_pesanan',
+                'pesanan.tanggal_pesanan',
+                'pelanggan.nama_pelanggan',
+                'pelanggan.email as pelanggan_email',
+                'pelanggan.nomor_whatsapp',
+                'pesanan.total_tagihan',
+                'pesanan.status_pesanan',
+            ]);
+
+        if ($request->filled('q')) {
+            $keyword = $request->string('q')->toString();
+            $query->where(function ($subQuery) use ($keyword) {
+                $subQuery->where('pelanggan.nama_pelanggan', 'like', "%{$keyword}%")
+                    ->orWhere('pesanan.nomor_pesanan', 'like', "%{$keyword}%");
+            });
+        }
+
+        if ($request->filled('tanggal_mulai')) {
+            $query->whereDate('pesanan.tanggal_pesanan', '>=', $request->date('tanggal_mulai'));
+        }
+
+        if ($request->filled('tanggal_selesai')) {
+            $query->whereDate('pesanan.tanggal_pesanan', '<=', $request->date('tanggal_selesai'));
+        }
+
+        if ($request->filled('status')) {
+            $query->where('pesanan.status_pesanan', $request->string('status')->toString());
+        }
+
+        $rows = $query->orderByDesc('pesanan.tanggal_pesanan')
+            ->orderByDesc('pesanan.id')
+            ->get();
+
+        $columns = [
+            'No. Pesanan',
+            'Tanggal Pesanan',
+            'Nama Customer',
+            'Email',
+            'No. WhatsApp',
+            'Total Tagihan',
+            'Status Pesanan',
+        ];
+
+        $filename = 'transactions_' . now()->format('Ymd_His') . '.csv';
+
+        return response()->streamDownload(function () use ($rows, $columns) {
+            $handle = fopen('php://output', 'w');
+            fwrite($handle, "sep=;\r\n");
+            fputcsv($handle, $columns, ';');
+
+            foreach ($rows as $row) {
+                fputcsv($handle, [
+                    $row->nomor_pesanan,
+                    $row->tanggal_pesanan,
+                    $row->nama_pelanggan,
+                    $row->pelanggan_email,
+                    $row->nomor_whatsapp,
+                    number_format((float) $row->total_tagihan, 0, ',', '.'),
+                    $row->status_pesanan,
+                ], ';');
+            }
+
+            fclose($handle);
+        }, $filename, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+        ]);
+    }
 }

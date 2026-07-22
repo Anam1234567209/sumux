@@ -54,8 +54,13 @@
         </div>
 
         <div class="flex gap-3">
-            <button class="px-5 py-3 bg-blue-400 text-white rounded-xl hover:bg-blue-500">
-                <i class="fas fa-print"></i> Cetak
+            <button onclick="exportPesanan()"
+                class="px-5 py-3 bg-blue-400 text-white rounded-xl hover:bg-blue-500 inline-flex items-center gap-2">
+                <i class="fas fa-file"></i> Ekspor
+            </button>
+            <button id="bulkDeleteBtn" type="button" onclick="confirmBulkDelete()"
+                class="px-5 py-3 bg-rose-500 text-white rounded-xl hover:bg-rose-600 disabled:opacity-50" disabled>
+                <i class="fas fa-trash"></i> Hapus Terpilih
             </button>
             <button type="button" data-open-order-modal
                 class="px-5 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700">
@@ -106,7 +111,7 @@
                 <thead>
                     <tr class="bg-slate-50/70 text-slate-500 uppercase text-[12px] tracking-wide">
                         <th class="px-5 py-5">
-                            <input type="checkbox">
+                            <input type="checkbox" id="selectAllOrders">
                         </th>
                         <th class="px-5 py-5">No. Pesanan</th>
                         <th class="px-5 py-5">Tanggal</th>
@@ -145,7 +150,8 @@
                         <tr
                             class="border-t border-slate-100 hover:bg-emerald-50/40 transition duration-200 whitespace-nowrap">
                             <td class="px-5 py-5 text-center">
-                                <input type="checkbox" class="rounded border-slate-300" />
+                                <input type="checkbox" class="rounded border-slate-300 order-checkbox"
+                                    value="{{ $order->id }}" />
                             </td>
 
                             <td class="px-5 py-6">
@@ -171,7 +177,23 @@
                             </td>
 
                             <td class="px-5 py-6 min-w-52 whitespace-normal text-slate-500">
-                                {{ $order->alamat_pengiriman ?: '-' }}
+                                <div class="font-medium text-slate-700">
+                                    {{ $order->alamat_pengiriman ?: '-' }}
+                                </div>
+                                <div class="text-xs text-slate-400 mt-1">
+                                    @php
+                                        $parts = array_filter([
+                                            $order->kelurahan_pengiriman ?? null,
+                                            $order->kecamatan_pengiriman ?? null,
+                                            $order->kota_pengiriman ?? null,
+                                            $order->provinsi_pengiriman ?? null,
+                                        ]);
+                                    @endphp
+                                    {{ $parts ? implode(', ', $parts) : '' }}
+                                    @if (!empty($order->kode_pos_pengiriman))
+                                        - {{ $order->kode_pos_pengiriman }}
+                                    @endif
+                                </div>
                             </td>
 
                             <td class="px-5 py-6 min-w-56 whitespace-normal">
@@ -411,7 +433,7 @@
                         <div>
                             <label class="mb-2 block text-sm font-medium text-slate-700">Nama Pelanggan <span
                                     class="text-red-500">*</span></label>
-                            <input type="text" name="customer_name" required
+                            <input type="text" name="customer_name" required placeholder="Masukkan nama pelanggan"
                                 class="w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-blue-500 focus:outline-none">
                         </div>
 
@@ -426,20 +448,63 @@
                                 <label class="mb-2 block text-sm font-medium text-slate-700">No. WhatsApp <span
                                         class="text-red-500">*</span></label>
                                 <input type="text" name="nomor_whatsapp" required
+                                    placeholder="Masukkan nomor WhatsApp"
                                     class="w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-blue-500 focus:outline-none">
                             </div>
                         </div>
 
                         <div>
                             <label class="mb-2 block text-sm font-medium text-slate-700">Email</label>
-                            <input type="email" name="customer_email"
+                            <input type="email" name="customer_email" placeholder="Masukkan email (opsional)"
                                 class="w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-blue-500 focus:outline-none">
                         </div>
 
                         <div>
                             <label class="mb-2 block text-sm font-medium text-slate-700">Alamat Pengiriman <span
                                     class="text-red-500">*</span></label>
-                            <textarea name="alamat_pengiriman" required
+                            <textarea name="alamat_pengiriman" required placeholder="Masukkan alamat pengiriman" rows="2"
+                                class="w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-blue-500 focus:outline-none"></textarea>
+                        </div>
+
+                        <div class="grid gap-5 sm:grid-cols-2">
+                            <div>
+                                <label class="mb-2 block text-sm font-medium text-slate-700">Provinsi<span
+                                        class="text-red-500">*</span></label>
+                                <input type="text" name="provinsi" type="text" placeholder="Masukkan provinsi"
+                                    required
+                                    class="w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-blue-500 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="mb-2 block text-sm font-medium text-slate-700">Kota/Kabupaten <span
+                                        class="text-red-500">*</span></label>
+                                <input type="text" name="kota_kabupaten" required
+                                    placeholder="Masukkan kota/kabupaten"
+                                    class="w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-blue-500 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="mb-2 block text-sm font-medium text-slate-700">Kecamatan <span
+                                        class="text-red-500">*</span></label>
+                                <input type="text" name="kecamatan" required placeholder="Masukkan kecamatan"
+                                    class="w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-blue-500 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="mb-2 block text-sm font-medium text-slate-700">Kelurahan <span
+                                        class="text-red-500">*</span></label>
+                                <input type="text" name="kelurahan" required placeholder="Masukkan kelurahan"
+                                    class="w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-blue-500 focus:outline-none">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="mb-2 block text-sm font-medium text-slate-700">Kode Pos</label>
+                            <input type="text" name="kode_pos" placeholder="Masukkan kode pos"
+                                class="w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-blue-500 focus:outline-none">
+                            </input>
+                        </div>
+
+                        <div>
+                            <label class="mb-2 block text-sm font-medium text-slate-700">Catatan</label>
+                            <textarea name="catatan" placeholder="Masukkan catatan (opsional)" rows="2"
                                 class="w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-blue-500 focus:outline-none"></textarea>
                         </div>
 
@@ -534,13 +599,28 @@
                                 <input type="text" name="biaya_ongkir" value="0" placeholder="Biaya Ongkir"
                                     class="ongkir w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-blue-500 focus:outline-none">
                             </div>
+                            <div class="sm:col-span-2">
+                                <label class="mb-2 block text-sm font-medium text-slate-700">Bukti Transaksi</label>
+                                <div class="col-span-2 flex items-center gap-3">
+                                    <img class="row-photo-preview w-14 h-14 rounded-xl object-cover ring-1 ring-slate-200"
+                                        id="previewBukti"
+                                        src="https://placehold.co/280x170/e2e8f0/64748b?text=Belum+Ada+Foto">
+                                    <label
+                                        class="flex-1 cursor-pointer rounded-xl border border-dashed border-slate-300 w-full px-6 py-3 text-xs text-slate-500 text-center hover:border-blue-400">
+                                        Pilih Foto Produk Ini
+                                        <input type="file" id="buktiTransaksi" name="bukti_transaksi"
+                                            accept="image/*" class="hidden row-photo-input">
+                                    </label>
+                                    {{-- <input type="hidden" name="item_existing_photo[]" value="${item.photo_url ?? ''}"> --}}
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="mt-6 border-t border-slate-200 pt-6 sm:col-span-2">
+                    {{-- <div class="mt-6 border-t border-slate-200 pt-6 sm:col-span-2">
                         <div class="grid gap-6 lg:grid-cols-2">
 
                             <!-- Preview Produk -->
-                            {{-- <div>
+                            <div>
                                 <label class="mb-1 block text-base font-semibold text-slate-800">
                                     Preview Produk (Foto Barang)
                                 </label>
@@ -580,9 +660,11 @@
                                         src="https://placehold.co/280x170/e2e8f0/64748b?text=Belum+Ada+Foto"
                                         class="h-40 w-auto rounded-xl border border-slate-300 object-cover">
                                 </div>
-                            </div> --}}
+                            </div>
 
                             <!-- Bukti Transaksi -->
+
+
                             <div>
                                 <label class="mb-1 block text-base font-semibold text-slate-800">
                                     Bukti Transaksi (Foto Pembayaran)
@@ -628,7 +710,7 @@
                             </div>
 
                         </div>
-                    </div>
+                    </div> --}}
                 </div>
 
                 <div class="mt-6 flex flex-wrap justify-end gap-3 border-t border-slate-200 pt-5">
@@ -694,6 +776,8 @@
     const orderIdInput = document.getElementById('orderId');
     const orderModalTitle = document.getElementById('orderModalTitle');
 
+    const csrfToken = '{{ csrf_token() }}';
+
     function openDeleteOrder(event) {
         event.preventDefault();
         const form = event.target.closest('form');
@@ -714,5 +798,114 @@
             }
         });
     }
+
+    function quickUpdateOrder(el) {
+        const orderId = el.dataset.orderId;
+        const field = el.dataset.field;
+        const value = el.value;
+
+        if (!orderId || !field) return;
+
+        fetch(`/admin/pesanan/${orderId}/quick-update`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({
+                field,
+                value
+            })
+        }).then(res => {
+            if (!res.ok) throw new Error('Update gagal');
+            return res.json().catch(() => ({}));
+        }).then(() => {
+            // optional: show small feedback
+        }).catch(() => {
+            Swal.fire('Gagal', 'Tidak dapat memperbarui data pesanan.', 'error');
+        });
+    }
+
+    function updateBulkButtonState() {
+        const selected = document.querySelectorAll('.order-checkbox:checked').length;
+        const btn = document.getElementById('bulkDeleteBtn');
+        if (btn) btn.disabled = selected === 0;
+    }
+
+    function exportPesanan() {
+        const checkedIds = Array.from(document.querySelectorAll('.order-checkbox:checked'))
+            .map(cb => cb.value)
+            .filter(Boolean);
+
+        const params = new URLSearchParams(window.location.search);
+        params.delete('page');
+        params.delete('per_page');
+        params.delete('ids[]');
+
+        if (checkedIds.length > 0) {
+            checkedIds.forEach(id => params.append('ids[]', id));
+        }
+
+        window.location.href = "{{ route('admin.pesanan.export') }}?" + params.toString();
+    }
+
+    function confirmBulkDelete() {
+        const selectedEls = Array.from(document.querySelectorAll('.order-checkbox:checked'));
+        const ids = selectedEls.map(el => el.value).filter(Boolean);
+        if (ids.length === 0) {
+            Swal.fire('Pilih pesanan', 'Silakan pilih pesanan yang ingin dihapus.', 'info');
+            return;
+        }
+
+        Swal.fire({
+            title: 'Hapus pesanan terpilih?',
+            text: `Anda akan menghapus ${ids.length} pesanan. Tindakan ini tidak dapat dikembalikan.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc2626',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Ya, Hapus!',
+            cancelButtonText: 'Batal'
+        }).then(result => {
+            if (result.isConfirmed) {
+                performBulkDelete(ids);
+            }
+        });
+    }
+
+    function performBulkDelete(ids) {
+        fetch('/admin/pesanan/bulk-delete', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({
+                ids
+            })
+        }).then(res => {
+            // redirect or reload to reflect changes
+            window.location.reload();
+        }).catch(() => {
+            Swal.fire('Gagal', 'Terjadi kesalahan saat menghapus pesanan.', 'error');
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const selectAll = document.getElementById('selectAllOrders');
+        if (selectAll) {
+            selectAll.addEventListener('change', function(e) {
+                document.querySelectorAll('.order-checkbox').forEach(cb => cb.checked = e.target
+                    .checked);
+                updateBulkButtonState();
+            });
+        }
+
+        document.querySelectorAll('.order-checkbox').forEach(cb => cb.addEventListener('change',
+            updateBulkButtonState));
+        updateBulkButtonState();
+    });
 </script>
 @endsection

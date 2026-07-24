@@ -72,13 +72,7 @@ RUN chown -R www-data:www-data \
 
 RUN php artisan package:discover --ansi || true
 
-RUN php artisan storage:link || true
 
-RUN php artisan config:cache || true
-
-RUN php artisan route:cache || true
-
-RUN php artisan view:cache || true
 
 COPY docker/nginx.conf /etc/nginx/sites-available/default
 COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf

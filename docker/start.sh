@@ -1,7 +1,7 @@
-#!/bin/sh
+php artisan optimize:clear
 
-php artisan config:cache || true
-php artisan route:cache || true
-php artisan view:cache || true
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
 
-exec /usr/bin/supervisord -c /etc/supervisor/supervisord.conf
+exec supervisord -c /etc/supervisor/conf.d/supervisord.conf

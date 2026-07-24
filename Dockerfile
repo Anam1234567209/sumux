@@ -1,7 +1,7 @@
 # ==========================
 # Stage 1 - Frontend Build
 # ==========================
-FROM node:22-alpine AS frontend
+FROM node:22-bookworm-slim AS frontend
 
 WORKDIR /app
 

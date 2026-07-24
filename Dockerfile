@@ -19,17 +19,14 @@ FROM composer:2 AS vendor
 
 WORKDIR /app
 
-COPY composer.json composer.lock ./
+COPY . .
 
 RUN composer install \
     --no-dev \
     --optimize-autoloader \
     --no-interaction \
-    --prefer-dist
-
-COPY . .
-
-RUN composer dump-autoload --optimize
+    --prefer-dist \
+    --no-scripts
 
 
 # ==========================
@@ -60,6 +57,7 @@ WORKDIR /var/www/html
 
 COPY . .
 
+
 COPY --from=vendor /app/vendor ./vendor
 COPY --from=frontend /app/public/build ./public/build
 
@@ -70,6 +68,16 @@ RUN mkdir -p storage/framework/cache \
 RUN chown -R www-data:www-data \
     storage \
     bootstrap/cache
+
+RUN php artisan package:discover --ansi || true
+
+RUN php artisan storage:link || true
+
+RUN php artisan config:cache || true
+
+RUN php artisan route:cache || true
+
+RUN php artisan view:cache || true
 
 COPY docker/nginx.conf /etc/nginx/sites-available/default
 COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf

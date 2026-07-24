@@ -6,7 +6,7 @@ FROM node:22-bookworm-slim AS frontend
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm install --no-audit --no-fund
+RUN rm -f package-lock.json && npm install --no-audit --no-fund
 
 COPY . .
 RUN npm run build

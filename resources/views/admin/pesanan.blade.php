@@ -387,7 +387,7 @@
                     @empty
                         <tr>
                             <td colspan="16" class="px-5 py-12 text-center text-slate-500">
-                                Belum ada data pesanan. Jalankan seeder untuk mengisi data dummy.
+                                Belum ada data pesanan.
                             </td>
                         </tr>
                     @endforelse

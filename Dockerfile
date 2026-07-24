@@ -1,40 +1,82 @@
-FROM node:22 AS frontend
+# ==========================
+# Stage 1 - Frontend Build
+# ==========================
+FROM node:22-alpine AS frontend
 
 WORKDIR /app
+
 COPY package*.json ./
 RUN npm install
+
 COPY . .
 RUN npm run build
 
+
+# ==========================
+# Stage 2 - Composer
+# ==========================
+FROM composer:2 AS vendor
+
+WORKDIR /app
+
+COPY composer.json composer.lock ./
+
+RUN composer install \
+    --no-dev \
+    --optimize-autoloader \
+    --no-interaction \
+    --prefer-dist
+
+COPY . .
+
+RUN composer dump-autoload --optimize
+
+
+# ==========================
+# Stage 3 - Production
+# ==========================
 FROM php:8.4-fpm
 
 RUN apt-get update && apt-get install -y \
-    git \
+    nginx \
+    supervisor \
     unzip \
+    git \
     curl \
     libzip-dev \
-    libpng-dev \
     libicu-dev \
+    libpng-dev \
     libonig-dev \
     libxml2-dev \
-    && docker-php-ext-install pdo_mysql intl mbstring zip \
+    && docker-php-ext-install \
+        pdo_mysql \
+        intl \
+        mbstring \
+        zip \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
-
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
 
 COPY . .
 
+COPY --from=vendor /app/vendor ./vendor
 COPY --from=frontend /app/public/build ./public/build
 
-RUN composer install --no-dev --optimize-autoloader
+RUN mkdir -p storage/framework/cache \
+    storage/framework/views \
+    storage/framework/sessions
 
-RUN php artisan config:clear || true
-RUN php artisan route:clear || true
-RUN php artisan view:clear || true
+RUN chown -R www-data:www-data \
+    storage \
+    bootstrap/cache
 
-EXPOSE 9000
+COPY docker/nginx.conf /etc/nginx/sites-available/default
+COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY docker/start.sh /start.sh
 
-CMD ["php-fpm"]
+RUN chmod +x /start.sh
+
+EXPOSE 3000
+
+CMD ["/start.sh"]

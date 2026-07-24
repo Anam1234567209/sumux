@@ -49,7 +49,8 @@ RUN apt-get update && apt-get install -y \
         pdo_mysql \
         intl \
         mbstring \
-        zip \
+        bcmath \
+        zip
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 

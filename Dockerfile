@@ -1,3 +1,11 @@
+FROM node:22 AS frontend
+
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+
 FROM php:8.4-fpm
 
 RUN apt-get update && apt-get install -y \
@@ -9,9 +17,9 @@ RUN apt-get update && apt-get install -y \
     libicu-dev \
     libonig-dev \
     libxml2-dev \
-    npm \
-    nginx \
-    && docker-php-ext-install pdo_mysql intl mbstring zip
+    && docker-php-ext-install pdo_mysql intl mbstring zip \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
@@ -19,9 +27,9 @@ WORKDIR /var/www/html
 
 COPY . .
 
-RUN composer install --no-dev --optimize-autoloader
+COPY --from=frontend /app/public/build ./public/build
 
-RUN npm install && npm run build
+RUN composer install --no-dev --optimize-autoloader
 
 RUN php artisan config:clear || true
 RUN php artisan route:clear || true

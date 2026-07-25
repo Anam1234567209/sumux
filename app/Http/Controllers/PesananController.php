@@ -590,6 +590,7 @@ class PesananController extends Controller
 
     public function update(Request $request, $id)
     {
+        $itemPrices = array_map(fn($value) => $this->parseMoney($value), $request->input('item_price', []));
         $itemSubtotals = array_map(fn($value) => $this->parseMoney($value), $request->input('item_subtotal', []));
         $totalTagihan = $this->parseMoney($request->input('total_tagihan'));
         $totalDibayar = $this->parseMoney($request->input('total_dibayar'));
@@ -600,6 +601,8 @@ class PesananController extends Controller
         }
 
         $request->merge([
+            'item_price' => $itemPrices,
+            'item_subtotal' => $itemSubtotals,
             'total_tagihan' => $totalTagihan,
             'total_dibayar' => $totalDibayar,
         ]);
@@ -719,7 +722,7 @@ class PesananController extends Controller
                     'jumlah' => (int) ($request->item_qty[$index] ?? 1),
                     'satuan' => $request->item_unit[$index] ?? 'pcs',
                     'subtotal' => (float) ($itemSubtotals[$index] ?? 0),
-                    'harga_satuan' => (float) ($request->input('item_price')[$index] ?? 0),
+                    'harga_satuan' => (float) ($itemPrices[$index] ?? 0),
                     'path_preview' => $previewPath,
                     'dibuat_pada' => now(),
                     'diperbarui_pada' => now(),

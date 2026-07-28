@@ -154,6 +154,51 @@ class PesananController extends Controller
         };
     }
 
+    private function normalizeStoragePath(?string $path): ?string
+    {
+        if (blank($path)) {
+            return null;
+        }
+
+        $trimmed = trim($path);
+
+        if (str_starts_with($trimmed, 'http://') || str_starts_with($trimmed, 'https://') || str_starts_with($trimmed, '//')) {
+            $parsed = parse_url($trimmed);
+            if (! empty($parsed['path'])) {
+                $trimmed = $parsed['path'];
+            }
+        }
+
+        if (str_starts_with($trimmed, '/storage/')) {
+            return ltrim(substr($trimmed, strlen('/storage/')), '/');
+        }
+
+        if (str_starts_with($trimmed, 'storage/')) {
+            return ltrim(substr($trimmed, strlen('storage/')), '/');
+        }
+
+        return ltrim($trimmed, '/');
+    }
+
+    private function storageUrl(?string $path): ?string
+    {
+        if (blank($path)) {
+            return null;
+        }
+
+        $trimmed = trim($path);
+
+        if (str_starts_with($trimmed, 'http://') || str_starts_with($trimmed, 'https://') || str_starts_with($trimmed, '//')) {
+            return $trimmed;
+        }
+
+        if (str_starts_with($trimmed, '/storage/')) {
+            return $trimmed;
+        }
+
+        return asset('storage/' . ltrim($this->normalizeStoragePath($trimmed), '/'));
+    }
+
     /**
      * Query dasar daftar pesanan (join + kolom + filter) dipakai bareng
      * oleh index() (tampilan tabel) dan export() (ekspor Excel/CSV).
@@ -511,7 +556,7 @@ class PesananController extends Controller
 
         $detailPreviewPath = null;
         if ($request->hasFile('foto_produk')) {
-            $detailPreviewPath = '/storage/' . Storage::disk('public')->put('uploads/pesanan/previews', $request->file('foto_produk'));
+            $detailPreviewPath = Storage::disk('public')->put('uploads/pesanan/previews', $request->file('foto_produk'));
         }
 
         if ($request->filled('item_name')) {
@@ -520,9 +565,9 @@ class PesananController extends Controller
                     continue;
                 }
 
-                $previewPath = $request->input("item_existing_photo.{$index}");
+                $previewPath = $this->normalizeStoragePath($request->input("item_existing_photo.{$index}"));
                 if (isset($itemPhotos[$index]) && $itemPhotos[$index]->isValid()) {
-                    $previewPath = '/storage/' . Storage::disk('public')->put('uploads/pesanan/previews', $itemPhotos[$index]);
+                    $previewPath = Storage::disk('public')->put('uploads/pesanan/previews', $itemPhotos[$index]);
                 }
 
                 if ($previewPath === null && $index === 0) {
@@ -560,7 +605,7 @@ class PesananController extends Controller
             ]);
 
             if ($request->hasFile('bukti_transaksi')) {
-                $buktiPath = '/storage/' . Storage::disk('public')->put('uploads/pesanan/bukti', $request->file('bukti_transaksi'));
+                $buktiPath = Storage::disk('public')->put('uploads/pesanan/bukti', $request->file('bukti_transaksi'));
                 DB::table('pembayaran')
                     ->where('id', $pembayaranId)
                     ->update(['path_bukti_bayar' => $buktiPath]);
@@ -697,7 +742,7 @@ class PesananController extends Controller
         $detailPreviewPath = null;
 
         if ($request->hasFile('foto_produk')) {
-            $detailPreviewPath = '/storage/' . Storage::disk('public')->put('uploads/pesanan/previews', $request->file('foto_produk'));
+            $detailPreviewPath = Storage::disk('public')->put('uploads/pesanan/previews', $request->file('foto_produk'));
         }
 
         DB::table('detail_pesanan')->where('pesanan_id', $id)->delete();
@@ -707,9 +752,9 @@ class PesananController extends Controller
                     continue;
                 }
 
-                $previewPath = $existingPhotos[$index] ?? null;
+                $previewPath = $this->normalizeStoragePath($existingPhotos[$index] ?? null);
                 if (isset($itemPhotos[$index]) && $itemPhotos[$index]->isValid()) {
-                    $previewPath = '/storage/' . Storage::disk('public')->put('uploads/pesanan/previews', $itemPhotos[$index]);
+                    $previewPath = Storage::disk('public')->put('uploads/pesanan/previews', $itemPhotos[$index]);
                 }
 
                 if ($previewPath === null && $index === 0) {
@@ -731,7 +776,7 @@ class PesananController extends Controller
         }
 
         if ($request->hasFile('bukti_transaksi')) {
-            $buktiPath = '/storage/' . Storage::disk('public')->put('uploads/pesanan/bukti', $request->file('bukti_transaksi'));
+            $buktiPath = Storage::disk('public')->put('uploads/pesanan/bukti', $request->file('bukti_transaksi'));
             $latestPaymentId = DB::table('pembayaran')
                 ->where('pesanan_id', $id)
                 ->orderByDesc('id')
@@ -866,7 +911,7 @@ class PesananController extends Controller
                     'qty' => $item->jumlah,
                     'unit' => $item->satuan,
                     'subtotal' => (float) $item->subtotal,
-                    'photo_url' => $item->path_preview,
+                    'photo_url' => $this->storageUrl($item->path_preview),
                 ];
             }),
         ]);
@@ -963,7 +1008,7 @@ class PesananController extends Controller
 
         $buktiPath = null;
         if ($request->hasFile('bukti_pembayaran')) {
-            $buktiPath = '/storage/' . Storage::disk('public')->put('uploads/pesanan/bukti', $request->file('bukti_pembayaran'));
+            $buktiPath = Storage::disk('public')->put('uploads/pesanan/bukti', $request->file('bukti_pembayaran'));
         }
 
         $paymentCount = DB::table('pembayaran')->where('pesanan_id', $id)->count();

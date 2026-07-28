@@ -224,8 +224,20 @@
                                 @if ($previews->isNotEmpty())
                                     <div class="flex -space-x-5">
                                         @foreach ($previews->take(3) as $previewPath)
-                                            <img src="{{ $previewPath }}"
-                                                onclick="window.open('{{ $previewPath }}', '_blank')"
+                                            @php
+                                                $previewUrl = $previewPath;
+                                                if (
+                                                    !str_starts_with($previewUrl, 'http://') &&
+                                                    !str_starts_with($previewUrl, 'https://') &&
+                                                    !str_starts_with($previewUrl, '//')
+                                                ) {
+                                                    $previewUrl = str_starts_with($previewUrl, '/storage/')
+                                                        ? $previewUrl
+                                                        : asset('storage/' . ltrim($previewUrl, '/'));
+                                                }
+                                            @endphp
+                                            <img src="{{ $previewUrl }}"
+                                                onclick="window.open('{{ $previewUrl }}', '_blank')"
                                                 title="{{ $details->firstWhere('path_preview', $previewPath)->nama_item }}"
                                                 class="w-16 h-16 rounded-2xl object-cover ring-1 ring-slate-100 cursor-pointer" />
                                         @endforeach
@@ -331,8 +343,20 @@
                                 @if ($proofsForOrder->isNotEmpty())
                                     <div class="flex -space-x-3">
                                         @foreach ($proofsForOrder->take(3) as $proof)
-                                            <img src="{{ $proof->path_bukti_bayar }}"
-                                                onclick="window.open('{{ $proof->path_bukti_bayar }}', '_blank')"
+                                            @php
+                                                $proofUrl = $proof->path_bukti_bayar;
+                                                if (
+                                                    !str_starts_with($proofUrl, 'http://') &&
+                                                    !str_starts_with($proofUrl, 'https://') &&
+                                                    !str_starts_with($proofUrl, '//')
+                                                ) {
+                                                    $proofUrl = str_starts_with($proofUrl, '/storage/')
+                                                        ? $proofUrl
+                                                        : asset('storage/' . ltrim($proofUrl, '/'));
+                                                }
+                                            @endphp
+                                            <img src="{{ $proofUrl }}"
+                                                onclick="window.open('{{ $proofUrl }}', '_blank')"
                                                 title="{{ $proof->nama_bank }} - {{ $formatRupiah($proof->jumlah_bayar) }}"
                                                 class="w-12 h-12 rounded-2xl object-cover ring-2 ring-white cursor-pointer">
                                         @endforeach
